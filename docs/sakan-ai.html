@@ -5396,6 +5396,19 @@ img{ -webkit-user-drag:none; user-select:none; }
 .deals-body2{ padding-top:7px !important; }
 .deals-ticker{ margin-bottom:0 !important; }
   html,body{ font-family:var(--font-ar); }
+
+/* ===== v114: عنوان العرض تحت الفيديو + تقليل المسافة في السوق ===== */
+/* اسم العرض: نوع العقار + «في حي كذا» بلون خفيف، وشارة «إيجار يومي» عند الاقتضاء */
+.card .content .info .title{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 8px; }
+.card .content .info .title .t-hood{ font-size:13px; font-weight:600; color:rgba(255,255,255,.78); letter-spacing:-.1px; }
+.card .content .info .title .t-tenure{ font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:20px; letter-spacing:.2px; }
+.card .content .info .title .t-tenure.daily{ color:#3a2606; background:linear-gradient(120deg,#FFD37A,#E8912F); box-shadow:0 3px 10px rgba(232,145,47,.35); }
+
+/* السوق العقاري: تقليل المسافات بين العروض (المحادثات) */
+.deals-body2{ gap:8px !important; padding:6px 12px 140px !important; }
+.deals-body2 .mkt-item, .deals-body2 .mkt-item2{ margin:0 !important; }
+.deals-ticker{ padding:5px 12px !important; font-size:10px !important; margin-bottom:2px !important; }
+.deals-live{ margin-top:4px !important; padding:4px 10px !important; font-size:10px !important; }
 </style>
 </head>
 <body>
@@ -6257,7 +6270,7 @@ img{ -webkit-user-drag:none; user-select:none; }
       <div class="content">
         <div class="info" data-act="openDetail" data-idx="${idx}">
           <div class="eyebrow">${catEmoji(p.category)} ${esc(p.category==='أرض'?'أرض سكنية':p.category)}</div>
-          <div class="title">${esc(p.type)} <span class="t-suffix">${isDaily?'· إيجار يومي':'· للإيجار'}</span></div>
+          <div class="title">${esc(p.type)} <span class="t-hood">في ${esc(p.neighborhood)}</span>${isDaily?'<span class="t-tenure daily">إيجار يومي</span>':''}</div>
           <div class="specs">${p.category==='أرض'
             ? `<span><b>${nfA(p.area)} م²</b></span><span class="sp-dot">·</span><span>${esc(p.perMeter)}</span>`
             : `<span><b>${nfA(p.area)} م²</b></span><span class="sp-dot">·</span><span>${nfA(p.rooms)} غرف</span><span class="sp-dot">·</span><span>${nfA(p.bath)} حمام</span>`}<span class="sp-dot">·</span><span class="sp-rate">★ ${nfA(p.rating)}</span></div>
