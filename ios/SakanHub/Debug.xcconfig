@@ -1,0 +1,9 @@
+// Debug configuration.
+// Duplicate this file to `Secrets.xcconfig` (git-ignored) and fill in real values there,
+// then set `Secrets.xcconfig` as the config file for the DEBUG configuration in Xcode.
+// The keys below are substituted into Info.plist via `$(VARIABLE)`.
+
+API_BASE_URL      = https:/$()/api.sakan.local
+MAPS_API_KEY      =
+GS_RENDERER_URL   =
+USE_MOCKS         = YES

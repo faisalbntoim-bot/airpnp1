@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Rename to Info.plist inside Xcode (or add the keys via Target > Info).
+  These usage descriptions are REQUIRED — the app crashes on iOS if a permission
+  is triggered without them.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>              <string>سكن هوب</string>
+    <key>CFBundleShortVersionString</key>       <string>0.1.0</string>
+    <key>CFBundleVersion</key>                  <string>1</string>
+
+    <!-- Right-to-left first-class -->
+    <key>CFBundleDevelopmentRegion</key>        <string>ar</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>ar</string>
+        <string>en</string>
+    </array>
+
+    <!-- ARKit -->
+    <key>NSCameraUsageDescription</key>
+    <string>لعرض العقارات بالواقع المعزّز فوق مشهد الكاميرا.</string>
+    <key>NSMotionUsageDescription</key>
+    <string>لتحديد اتجاه الجهاز أثناء الجولة الافتراضية والواقع المعزّز.</string>
+    <key>UIRequiredDeviceCapabilities</key>
+    <array><string>arkit</string></array>
+    <key>arkit</key>                            <true/>
+
+    <!-- Location -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>لعرض العقارات القريبة وحساب المسافة على الخريطة والواقع المعزّز.</string>
+    <key>NSLocationTemporaryUsageDescriptionDictionary</key>
+    <dict>
+        <key>ARGeoTracking</key>
+        <string>لدقة أعلى في الواقع المعزّز عند توفّرها في مدينتك.</string>
+    </dict>
+
+    <!-- Config values consumed by `Config.swift`.
+         In production, feed via a .xcconfig substitution ($API_BASE_URL etc.). -->
+    <key>API_BASE_URL</key>                     <string>$(API_BASE_URL)</string>
+    <key>MAPS_API_KEY</key>                     <string>$(MAPS_API_KEY)</string>
+    <key>GS_RENDERER_URL</key>                  <string>$(GS_RENDERER_URL)</string>
+    <key>USE_MOCKS</key>                        <string>YES</string>
+</dict>
+</plist>

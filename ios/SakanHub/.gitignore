@@ -1,0 +1,26 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# CocoaPods (in case anyone adds it later)
+Pods/
+
+# Secrets — never commit real API keys
+Secrets.xcconfig
+GoogleService-Info.plist
+*.p8
+*.p12
+
+# System
+.DS_Store
