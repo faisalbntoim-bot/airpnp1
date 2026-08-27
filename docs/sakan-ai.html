@@ -4115,7 +4115,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .ds-store{ display:flex; gap:8px; }
   .ds-store span{ font-size:11.5px; font-weight:700; color:#cfe6db; border:1px solid rgba(255,255,255,.16); border-radius:10px; padding:6px 12px; }
   /* تأطير التطبيق كجهاز — والـ transform يجعل .app الحاوية للعناصر الثابتة (تبقى داخل الإطار) */
-  .app{ position:relative; z-index:2; transform:translateZ(0);
+  /* إصلاح المساحة البيضاء أسفل الإطار على سطح المكتب:
+     1) قصّ أي محتوى يخرج عن حدود الشاشة (overflow) و 2) اجعل خلفية .app شفافة
+        حتى لا يظهر أي بريق أبيض عند حافة الفيوبورت. */
+  html, body{ height:100vh; overflow:hidden; }
+  .app{ position:relative; z-index:2; transform:translateZ(0); background:transparent !important;
     box-shadow:0 0 0 10px #0c0d10, 0 0 0 11px rgba(255,255,255,.06), 0 48px 100px rgba(0,0,0,.62) !important; }
 }
 @media (min-width:1024px){ .ds-side{ display:block; } }
