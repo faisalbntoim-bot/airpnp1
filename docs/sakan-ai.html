@@ -5502,10 +5502,179 @@ img{ -webkit-user-drag:none; user-select:none; }
 .pcd-cta{ margin-top:2px; font-family:var(--font-ar); font-weight:800; font-size:12px; color:#0C4C3A;
   background:linear-gradient(120deg,#8fe6c2,#4fc79a); border:none; border-radius:12px; padding:10px 12px; cursor:pointer; box-shadow:0 4px 12px rgba(124,240,196,.28); }
 .pcd-cta:active{ transform:scale(.98); }
+
+/* ===== v115: ذهبي أنيق · خريطة أنعم · بطاقات المضيف · هوية أنعم ودينامية ===== */
+
+/* --- 1) ذهبي هادئ يستبدل اللون البرتقالي في كل الوضع اليومي --- */
+:root{
+  --gold:#B99753;          /* ذهبي كلاسيكي أنيق */
+  --gold-deep:#8E6F2F;     /* ذهبي غامق */
+  --gold-light:#E7CE95;    /* شامبين ناعم */
+  --gold-soft:#F3E2B6;     /* أفتح للخلفيات */
+  --gold-grad:linear-gradient(135deg, #E7CE95 0%, #C6A458 55%, #8E6F2F 100%);
+  --gold-grad-soft:linear-gradient(135deg, #F5E5BA, #D8B76A);
+}
+/* بطاقات وأدوات الإيجار اليومي — كلها ذهبية هادئة الآن */
+.price.daily{
+  background:var(--gold-grad) !important;
+  -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent !important; }
+.price.daily small{ -webkit-text-fill-color:#B99753 !important; color:#B99753 !important; }
+.p-dtag{
+  background:var(--gold-grad) !important; color:#3d2f0e !important; -webkit-text-fill-color:#3d2f0e !important;
+  box-shadow:0 3px 10px rgba(142,111,47,.28) !important; }
+.rent-seg .rseg.on.daily,
+.daily-badge{
+  background:var(--gold-grad) !important; color:#3d2f0e !important; box-shadow:0 3px 10px rgba(142,111,47,.28) !important; }
+
+/* البطاقة الأنيقة للمضيف — من أصفر برتقالي إلى شامبين هادئ */
+.detail .host-row2.is-host{
+  background:linear-gradient(135deg,#FBF3DE 0%,#F5E5BA 92%) !important;
+  border:1px solid #E4CC90 !important;
+  box-shadow:0 6px 18px rgba(142,111,47,.10) !important; }
+.detail .host-row2.is-host .host-n2{ color:#5c4514 !important; }
+.detail .host-row2.is-host .host-vchip{ background:var(--gold-grad) !important; color:#3d2f0e !important; }
+.detail .host-row2.is-host .host-msg{ background:#3d2f0e !important; color:#E7CE95 !important; }
+
+.mode-toggle.daily{
+  background:linear-gradient(120deg, #F8ECC7, #FDF6DF) !important;
+  border-color:#E4CC90 !important; }
+.mode-toggle.daily button{ color:#5c4514 !important; }
+.mode-toggle.daily button.on{
+  background:var(--gold-grad) !important; color:#3d2f0e !important;
+  box-shadow:0 3px 10px rgba(142,111,47,.30) !important; }
+
+/* لافتة تنبيه دقة الموقع (AR) بلمسة ذهبية بدل البرتقالي */
+.ar-acc-banner{
+  background:var(--gold-grad) !important; color:#3d2f0e !important;
+  box-shadow:0 6px 16px rgba(142,111,47,.25) !important; }
+
+/* رسمة الشقة/العرض الأعلى في السوق (ذهبية دفتر السجلات) */
+.mi-tag2.req, .mi-dot2.agri, .mkt-item2.agri::before, .mi-odot.agri, .dorg-dot.agri,
+.akpi.tone-c::before, .mkt-activity .mact.vol::before{
+  background:linear-gradient(90deg, #B99753, #E7CE95) !important; }
+.akpi.tone-c .akpi-ic, .mkt-activity .mact.vol .mact-ic{ color:#8E6F2F !important; }
+.admc-st.gold{
+  background:linear-gradient(150deg, color-mix(in srgb, var(--gold) 22%, var(--paper)), color-mix(in srgb, var(--gold) 8%, var(--paper))) !important;
+  border-color:color-mix(in srgb, var(--gold) 36%, var(--line)) !important; }
+.admc-st.gold b{ color:#8E6F2F !important; }
+
+/* --- 2) بطاقات المضيف — ترتيب أنيق + طباعة أوضح --- */
+.host-offer{
+  background:linear-gradient(180deg, #FDF9EE 0%, #FBF3DE 100%) !important;
+  border:1px solid #E4CC90 !important; padding:16px 14px 14px !important;
+  box-shadow:0 8px 22px rgba(142,111,47,.10) !important; border-radius:20px !important; }
+.host-offer .ho-h{ padding-bottom:12px; border-bottom:1px dashed rgba(142,111,47,.28); margin-bottom:14px !important; }
+.host-offer .ho-h b{ font-size:15px !important; color:#5c4514 !important; letter-spacing:-.2px; }
+.host-offer .ho-ic{
+  background:var(--gold-grad) !important; color:#3d2f0e !important; width:32px !important; height:32px !important;
+  box-shadow:0 3px 8px rgba(142,111,47,.28) !important; }
+.host-offer .ho-tag{
+  background:rgba(255,255,255,.85) !important; border-color:#E4CC90 !important; color:#5c4514 !important; }
+
+.host-offer .ho-grid{ gap:10px !important; }
+.ho-it{
+  background:#fff !important; border:1px solid rgba(228,204,144,.55) !important;
+  padding:12px !important; padding-inline-start:48px !important;
+  min-height:64px !important; border-radius:14px !important; transition:transform .16s ease, box-shadow .16s ease; }
+.ho-it:active{ transform:scale(.97); box-shadow:0 4px 10px rgba(142,111,47,.14); }
+.ho-it .ho-em{ top:12px !important; inset-inline-start:12px !important; font-size:22px !important; line-height:1;
+  filter:drop-shadow(0 1px 2px rgba(142,111,47,.22)); }
+.ho-it b{ font-size:13px !important; color:#3d2f0e !important; letter-spacing:-.1px; line-height:1.35 !important; margin-bottom:3px !important; }
+.ho-it small{ color:#8a6a2f !important; font-size:10.5px !important; line-height:1.55 !important; }
+
+/* بطاقة «عن المضيف» — نغمة ورقيّة راقية */
+.host-brief{ border-radius:18px !important; padding:14px 15px !important; box-shadow:0 6px 20px rgba(30,45,40,.06) !important; }
+.host-brief .hb-star{ color:#8E6F2F !important; }
+.host-brief .hb-av{ box-shadow:0 4px 10px rgba(14,124,102,.28); }
+
+/* --- 3) الخريطة أنعم وأدق --- */
+.leaflet-container{ background:#eef2ef; }
+.map-topbar .icon-btn{
+  width:38px; height:38px; background:rgba(255,255,255,.94) !important;
+  color:var(--accent-deep,#0C4C3A) !important; border:1px solid rgba(0,0,0,.06) !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.15) !important; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+.map-mini{
+  border-radius:18px !important; padding:12px 12px !important;
+  box-shadow:0 10px 26px rgba(20,45,40,.14) !important; border:1px solid rgba(255,255,255,.6);
+  transition:transform .18s cubic-bezier(.34,1.4,.6,1), box-shadow .18s ease; }
+.map-mini.sel{
+  box-shadow:0 0 0 2px var(--accent), 0 12px 30px rgba(46,158,119,.28) !important;
+  transform:translateY(-2px);
+}
+.map-mini .thumb{ border-radius:14px !important; box-shadow:inset 0 0 0 1px rgba(0,0,0,.05); }
+.map-mini .mm-price{ color:var(--accent-deep,#0C4C3A) !important; letter-spacing:-.3px; }
+
+/* Leaflet zoom control softer */
+.leaflet-bar{ border:none !important; border-radius:14px !important; overflow:hidden;
+  box-shadow:0 8px 20px rgba(0,0,0,.16) !important; }
+.leaflet-bar a{ background:rgba(255,255,255,.94) !important; color:var(--accent-deep,#0C4C3A) !important; }
+.leaflet-bar a:hover{ background:#fff !important; }
+.leaflet-control-attribution{ font-size:9px !important; opacity:.5; }
+
+/* دبوس السعر على الخريطة (custom marker chip) */
+.leaflet-marker-icon .price-pin,
+.price-pin{
+  padding:5px 10px; border-radius:14px; font-size:12px; font-weight:800; color:var(--accent-deep,#0C4C3A);
+  background:#fff; box-shadow:0 4px 10px rgba(0,0,0,.18); border:1px solid rgba(0,0,0,.06); }
+.price-pin.sel{ background:var(--accent); color:#fff; }
+
+/* --- 4) هوية أنعم ودينامية عبر التطبيق --- */
+:root{
+  --shadow-sm: 0 3px 12px rgba(30,45,40,.05);
+  --shadow:    0 8px 22px rgba(20,45,40,.08);
+  --shadow-lg: 0 14px 36px rgba(0,0,0,.12);
+}
+/* دفعة نعومة عامة للبطاقات */
+.perks-card, .rev-card, .adm-chart, .adm-users .au-row, .adm-listings .al-row,
+.host-brief, .host-row2, .secure-badge, .shield-mini, .quote-card, .fee-card{
+  box-shadow:var(--shadow-sm) !important;
+  transition:transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease;
+}
+.perks-card:hover, .rev-card:hover, .adm-chart:hover, .host-brief:hover, .host-row2:hover{
+  box-shadow:var(--shadow) !important;
+}
+/* تفاعل خفيف مع الأزرار الأساسية */
+.cta.primary, .book-mini2:not(.alt), .cta.pay-cta, .PrimaryButton, .ar-cta, .rev-more, .lpop-btn{
+  transition:transform .12s ease, box-shadow .18s ease, filter .18s ease;
+}
+.cta.primary:active, .book-mini2:not(.alt):active, .cta.pay-cta:active, .rev-more:active, .lpop-btn:active{
+  transform:scale(.98); filter:brightness(.98);
+}
+/* micro fade-in للعناصر داخل صفحة التفاصيل */
+@keyframes softFadeUp{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+.detail.open .detail-body > *, .detail.open .ar-cta{
+  animation:softFadeUp .32s ease both;
+}
+@media (prefers-reduced-motion:reduce){ .detail.open .detail-body > *{ animation:none; } }
+/* تحسين حواف كل الأزرار الحوامل (icon-btn) لتكون أنعم */
+.icon-btn, .fcc-btn, .cta.ghost{
+  transition:transform .12s ease, background .18s ease, box-shadow .18s ease;
+}
+.icon-btn:active, .fcc-btn:active, .cta.ghost:active{ transform:scale(.94); }
+
+/* --- 5) صفحة التفاصيل الكاملة — أنيقة أكثر --- */
+.detail-body{ padding-top:16px !important; }
+.detail-body .d-title{ letter-spacing:-.4px !important; }
+.detail-body .d-sub{ opacity:.9 !important; }
+.spec-book-row .specs-grid{
+  background:linear-gradient(160deg, #fff, #f5f8f6) !important;
+  border-radius:16px !important; border:1px solid rgba(46,158,119,.14) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.7), 0 6px 14px rgba(20,45,40,.04) !important; }
+.spec-book-row .specs-grid .s b{ letter-spacing:-.2px; }
+.specs-grid .s.hi b{
+  background:linear-gradient(120deg, color-mix(in srgb, var(--sage) 28%, var(--paper)), color-mix(in srgb, var(--sage) 12%, var(--paper))) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--sage) 34%, transparent), 0 2px 6px rgba(46,158,119,.10) !important;
+}
+.book-mini2:not(.alt){
+  background:linear-gradient(135deg, var(--accent), var(--accent-deep)) !important;
+  box-shadow:0 8px 20px rgba(12,122,95,.32) !important;
+}
+.perks-card{ border-radius:18px !important; padding:14px 14px 12px !important; }
+.perks-card .perks-title{ letter-spacing:-.2px; }
+.perk{ transition:transform .12s ease, background .18s ease; }
+.perk:active{ transform:scale(.96); }
 </style>
 </head>
-<body>
-<div class="app" id="app"></div>
 <body>
 <div class="app" id="app"></div>
 <script>/* Leaflet 1.9.4 */
