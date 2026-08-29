@@ -77,6 +77,19 @@ Auth required. Body `{ refreshToken }` revokes just that token; empty body logs 
 ### `GET /v1/auth/me`
 Auth required. Returns caller identity + all granted roles + the role from the current access token.
 
+### `DELETE /v1/account`
+Auth required. Soft-close the caller's account (PDPL / Apple 5.1.1(v)). Financial records stay intact for audit.
+
+```jsonc
+// Request — client MUST send confirm:"DELETE" to prevent misclicks
+{ "confirm": "DELETE", "reason": "…" }
+
+// 200 OK
+{ "ok": true, "deletedAt": "…" }
+```
+
+Refused with `409 CONFLICT` when the caller still has money in flight (pending payment or unpaid settlement). On success: phone/email/names anonymised, `status` → `closed`, properties hidden, all refresh tokens revoked.
+
 ---
 
 ## Properties

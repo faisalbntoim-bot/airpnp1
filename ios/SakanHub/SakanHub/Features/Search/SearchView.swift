@@ -32,7 +32,7 @@ final class SearchViewModel: ObservableObject {
 
 struct SearchView: View {
     @EnvironmentObject private var appState: AppState
-    @StateObject private var vm: SearchViewModel = SearchViewModel(repo: MockPropertyRepository())
+    @StateObject private var vm: SearchViewModel = SearchViewModel(repo: RepositoryFactory.propertyRepository())
     @State private var detailProperty: Property?
     @State private var typedQuery: String = ""
 

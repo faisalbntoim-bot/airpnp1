@@ -49,7 +49,7 @@ struct PropertyDetailView: View {
     init(propertyID: Property.ID) {
         self.propertyID = propertyID
         _vm = StateObject(wrappedValue: PropertyDetailViewModel(
-            repo: MockPropertyRepository(), favs: MockFavoriteRepository()))
+            repo: RepositoryFactory.propertyRepository(), favs: RepositoryFactory.favoriteRepository()))
     }
 
     var body: some View {

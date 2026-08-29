@@ -15,6 +15,7 @@ import { config } from './config.js';
 import { loggerOptions } from './logger.js';
 import { AppError } from './errors.js';
 import authRoutes from './routes/auth.js';
+import accountRoutes from './routes/account.js';
 import propertyRoutes from './routes/properties.js';
 import bookingRoutes from './routes/bookings.js';
 import paymentRoutes from './routes/payments.js';
@@ -40,6 +41,7 @@ export async function buildServer() {
   });
 
   await app.register(authRoutes);
+  await app.register(accountRoutes);
   await app.register(propertyRoutes);
   await app.register(bookingRoutes);
   await app.register(paymentRoutes);

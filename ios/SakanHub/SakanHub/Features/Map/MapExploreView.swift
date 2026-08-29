@@ -22,7 +22,7 @@ final class MapExploreViewModel: ObservableObject {
 
 /// Uses MapKit only (no external SDKs). Extensible later to Mapbox etc.
 struct MapExploreView: View {
-    @StateObject private var vm: MapExploreViewModel = MapExploreViewModel(repo: MockPropertyRepository())
+    @StateObject private var vm: MapExploreViewModel = MapExploreViewModel(repo: RepositoryFactory.propertyRepository())
 
     /// Optional focus point + fixed height for embedding (e.g. inside a detail).
     var focus: CLLocationCoordinate2D? = nil

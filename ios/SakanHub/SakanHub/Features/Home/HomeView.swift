@@ -12,7 +12,7 @@ struct HomeView: View {
     @State private var liked: Set<Property.ID> = []
 
     init() {
-        _vm = StateObject(wrappedValue: HomeViewModel(repo: MockPropertyRepository()))
+        _vm = StateObject(wrappedValue: HomeViewModel(repo: RepositoryFactory.propertyRepository()))
     }
 
     var body: some View {

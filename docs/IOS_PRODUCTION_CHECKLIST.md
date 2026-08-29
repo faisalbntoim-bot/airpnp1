@@ -21,20 +21,20 @@ None of this can be compiled here — verification of the iOS side requires macO
 
 | Item | Status | Notes |
 |---|---|---|
-| Real API client exists | ⚠️ | `Core/Networking/APIClient.swift` present, but **has ZERO callers** — nothing in the app hits `/v1/*` |
-| Real repositories | ❌ | All repositories are `MockXxxRepository`; no `HttpPropertyRepository` etc. |
-| DI-based repository selection | ❌ | Views call `MockPropertyRepository()` directly in `StateObject(wrappedValue:)`, bypassing AppState's DI |
-| Auth header injection | ❌ | APIClient does not attach `x-user-id`/`x-user-role`/`Authorization` |
-| Error mapping (401/403/404/409/422/429/5xx) | ⚠️ | `APIError` covers 400/401/404 + generic http/network — missing 403/409/422/429 semantics |
+| Real API client exists | ✅ | `Core/Networking/APIClient.swift` rewritten: Bearer injection, 401 auto-refresh (single-flight lock), full error mapping |
+| Real repositories | ✅ | `Http{Auth,Property,Booking,Payment,Wallet,Invoice}Repository` shipped; mocks retained for preview/tests |
+| DI-based repository selection | ✅ | `RepositoryFactory` picks Http vs Mock based on `PRODUCTION` compile flag + `USE_MOCKS`; views use the factory not `Mock…()` |
+| Auth header injection | ✅ | `Authorization: Bearer <access>` attached automatically when a token exists in Keychain |
+| Error mapping (401/403/404/409/422/429/5xx) | ✅ | `APIError` covers all + `.network`, `.cancelled`, `.notImplemented`, `.retryable` classification |
 
 ## Authentication
 
 | Item | Status | Notes |
 |---|---|---|
-| OTP request flow | ❌ | `MockUserRepository.signIn(phone:otp:)` exists as protocol shape; no real impl |
-| JWT storage | ❌ | No Keychain wrapper, no token refresh |
-| Session expiry / auto-logout | ❌ | Not modelled |
-| Sign in with Apple | ❌ | Not present; may be required by Apple Review if any social login lands |
+| OTP request flow | ✅ | `Features/Auth/AuthView.swift` — phone → OTP → verify, calls `POST /v1/auth/otp` + `/verify` |
+| JWT storage | ✅ | `Core/Security/Keychain.swift` (SecItem, AfterFirstUnlockThisDeviceOnly) + `TokenStore` actor. Never UserDefaults |
+| Session expiry / auto-logout | ✅ | APIClient auto-refreshes on 401 once; on second 401 wipes tokens + throws `.unauthorized` |
+| Sign in with Apple | ❌ | Not present; add if any social login is introduced |
 
 ## Bookings, payments, wallet screens
 
@@ -82,7 +82,7 @@ None of this can be compiled here — verification of the iOS side requires macO
 | `NSUserTrackingUsageDescription` | 🚫 | Only if IDFA is used |
 | `NSFaceIDUsageDescription` | ⚠️ | If biometric login lands |
 | Push notification entitlement | ❌ | Not configured |
-| `PrivacyInfo.xcprivacy` (Apple Privacy Manifest, mandatory since May 2024) | ❌ | Missing — App Store submission will be blocked |
+| `PrivacyInfo.xcprivacy` (Apple Privacy Manifest, mandatory since May 2024) | ✅ | `Resources/PrivacyInfo.xcprivacy` shipped — NSPrivacyTracking=false, declares Phone/Name/CoarseLocation as linked-non-tracking + UserDefaults+FileTimestamp reason APIs. Keep in sync with App Store Connect disclosures |
 
 ## App Store assets (missing)
 
