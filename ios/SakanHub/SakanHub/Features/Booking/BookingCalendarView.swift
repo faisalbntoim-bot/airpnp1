@@ -14,7 +14,13 @@ struct BookingCalendarView: View {
     @State private var isSaving = false
     @State private var showSuccess = false
 
+    /// Server-computed quote. All money numbers on this screen come from here —
+    /// there is no local fee, VAT, or total calculation. See docs/API_CONTRACT.md.
+    @State private var quote: APIQuote?
+    @State private var quoteError: String?
+
     private let cal = Calendar(identifier: .gregorian)
+    private let http = HttpBookingRepository()
 
     var body: some View {
         NavigationStack {
@@ -121,24 +127,63 @@ struct BookingCalendarView: View {
     }
 
     private func summary(nights n: Int) -> some View {
-        let rate = property.dailyRateSAR ?? 0
-        let sub = Double(n) * rate
-        let cleaning = 120.0
-        let service = (sub * 0.12).rounded()
-        let vat = (service * 0.15).rounded()
-        let total = sub + cleaning + service + vat
-        return VStack(alignment: .trailing, spacing: 6) {
+        VStack(alignment: .trailing, spacing: 6) {
             SectionHeader(title: "الفاتورة")
-            row("\(n) ليالٍ × \(Int(rate)) ر.س", value: "\(Int(sub)) ر.س")
-            row("تنظيف", value: "\(Int(cleaning)) ر.س")
-            row("رسوم خدمة سكن هوب ١٢٪", value: "\(Int(service)) ر.س")
-            row("ضريبة القيمة المضافة ١٥٪", value: "\(Int(vat)) ر.س")
-            Divider()
-            row("الإجمالي", value: "\(Int(total)) ر.س", strong: true)
+            if let q = quote {
+                // Every value below comes verbatim from the backend engine.
+                row("\(n) ليالٍ", value: q.grossAmountHalalahs.formatted(currency: q.currency))
+                row("رسوم منصة سكن هوب", value: q.commission.platformFeeHalalahs.formatted(currency: q.currency))
+                if q.taxOnPlatformFee.taxAmountHalalahs.halalahs != "0" {
+                    row("ضريبة على الرسوم (\(Int(q.taxOnPlatformFee.ratePercent))٪)",
+                        value: q.taxOnPlatformFee.taxAmountHalalahs.formatted(currency: q.currency))
+                }
+                if q.taxOnRental.taxAmountHalalahs.halalahs != "0" {
+                    row("ضريبة على الإيجار (\(Int(q.taxOnRental.ratePercent))٪)",
+                        value: q.taxOnRental.taxAmountHalalahs.formatted(currency: q.currency))
+                }
+                Divider()
+                row("الإجمالي", value: q.customerTotalHalalahs.formatted(currency: q.currency), strong: true)
+            } else if let m = quoteError {
+                Text(m).font(.footnote).foregroundStyle(.red)
+            } else {
+                HStack { Spacer(); ProgressView().padding(.vertical, 8); Spacer() }
+                Text("يتم حساب السعر النهائي من الخادم…")
+                    .font(.footnote).foregroundStyle(Theme.textDim)
+            }
         }
         .padding(12)
         .background(Theme.paper, in: RoundedRectangle(cornerRadius: 14))
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.line, lineWidth: 1))
+        .task(id: n) { await refreshQuote(nights: n) }
+    }
+
+    private func refreshQuote(nights n: Int) async {
+        let rate = property.dailyRateSAR ?? 0
+        let subMajor = Double(n) * rate
+        guard subMajor > 0 else { quote = nil; return }
+        do {
+            quoteError = nil
+            quote = try await http.quote(input: .init(
+                transactionType: "DAILY_RENTAL",
+                propertyType: propertyTypeKey(),
+                grossAmount: String(Int(subMajor.rounded())),
+                currency: "SAR"
+            ))
+        } catch let e as APIError {
+            quoteError = e.errorDescription
+        } catch {
+            quoteError = error.localizedDescription
+        }
+    }
+
+    private func propertyTypeKey() -> String {
+        switch property.category {
+        case .apartment: return "apartment"; case .villa: return "villa"
+        case .duplex: return "duplex"; case .studio: return "studio"
+        case .land: return "land"; case .office: return "office"
+        case .shop: return "shop"; case .farm: return "farm"
+        case .commercial: return "commercial"; case .building: return "building"
+        }
     }
 
     private func row(_ label: String, value: String, strong: Bool = false) -> some View {
@@ -155,19 +200,29 @@ struct BookingCalendarView: View {
         guard let ci = checkIn, let co = checkOut, let n = nights, n > 0 else { return }
         isSaving = true; defer { isSaving = false }
         let rate = property.dailyRateSAR ?? 0
-        let sub = Double(n) * rate, cleaning = 120.0, service = sub * 0.12, vat = service * 0.15
-        let b = Booking(
-            id: UUID().uuidString,
-            propertyID: property.id, guestID: MockData.demoUser.id,
-            checkIn: ci, checkOut: co, nights: n,
-            pricePerNightSAR: rate, cleaningFeeSAR: cleaning,
-            serviceFeeSAR: service, vatSAR: vat,
-            totalSAR: sub + cleaning + service + vat,
-            status: .pending, createdAt: .now
-        )
-        _ = try? await appState.bookingRepo.create(b)
-        withAnimation { showSuccess = true }
-        try? await Task.sleep(nanoseconds: 1_600_000_000)
-        dismiss()
+        let subMajor = Double(n) * rate
+        do {
+            // The backend is authoritative: it recomputes the quote, enforces
+            // availability, and stores the confirmed booking + its immutable quote.
+            _ = try await http.createBooking(
+                .init(
+                    propertyId: property.id,
+                    transactionType: "DAILY_RENTAL",
+                    grossAmount: String(Int(subMajor.rounded())),
+                    currency: "SAR",
+                    nights: n,
+                    checkIn:  ISO8601DateFormatter().string(from: ci),
+                    checkOut: ISO8601DateFormatter().string(from: co)
+                ),
+                idempotencyKey: UUID().uuidString
+            )
+            withAnimation { showSuccess = true }
+            try? await Task.sleep(nanoseconds: 1_600_000_000)
+            dismiss()
+        } catch let e as APIError {
+            quoteError = e.errorDescription
+        } catch {
+            quoteError = error.localizedDescription
+        }
     }
 }
