@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { getPrisma } from '../db.js';
-import { requireAuth } from '../auth/rbac.js';
-import { badRequest, notFound } from '../errors.js';
+import { requireAuth, isAdminRole } from '../auth/rbac.js';
+import { badRequest, conflict, notFound } from '../errors.js';
 import { computeQuote } from '../financial/pricing.js';
 import { halalahsFromMajor, jsonSafe } from '../money.js';
 
@@ -28,6 +28,11 @@ export default async function bookingRoutes(app: FastifyInstance) {
     const gross = halalahsFromMajor(body.grossAmount);
     if (gross <= 0n) throw badRequest('grossAmount must be positive');
 
+    // Currency must match the property.
+    if (body.currency !== property.currency) {
+      throw badRequest(`booking currency ${body.currency} does not match property currency ${property.currency}`);
+    }
+
     // Determine host from PropertyHost for DAILY_RENTAL, else owner.
     let hostId = property.ownerId;
     if (body.transactionType === 'DAILY_RENTAL') {
@@ -35,19 +40,42 @@ export default async function bookingRoutes(app: FastifyInstance) {
       hostId = primary?.hostId ?? property.ownerId;
     }
 
-    const booking = await prisma.booking.create({
-      data: {
-        propertyId: property.id,
-        customerId: caller.userId,
-        hostId,
-        transactionType: body.transactionType,
-        checkIn: body.checkIn ? new Date(body.checkIn) : null,
-        checkOut: body.checkOut ? new Date(body.checkOut) : null,
-        nights: body.nights ?? null,
-        grossAmountHalalahs: gross,
-        currency: body.currency,
-        idempotencyKey: body.idempotencyKey ?? null,
-      },
+    // Availability guard for date-based transactions: refuse an overlapping booking
+    // in a single transaction so two concurrent requests cannot both succeed.
+    // NOTE: SQLite serialises writers; Postgres deployments should also apply a
+    // property-row SELECT FOR UPDATE inside this tx for the same guarantee.
+    const booking = await prisma.$transaction(async (tx) => {
+      if (body.checkIn && body.checkOut) {
+        const checkIn  = new Date(body.checkIn);
+        const checkOut = new Date(body.checkOut);
+        if (checkIn.getTime() >= checkOut.getTime()) throw badRequest('checkIn must be before checkOut');
+        const overlap = await tx.booking.findFirst({
+          where: {
+            propertyId: property.id,
+            status: { in: ['pending_payment', 'confirmed'] },
+            AND: [
+              { checkIn:  { lt: checkOut } },
+              { checkOut: { gt: checkIn } },
+            ],
+          },
+          select: { id: true },
+        });
+        if (overlap) throw conflict('property is not available for the selected dates');
+      }
+      return tx.booking.create({
+        data: {
+          propertyId: property.id,
+          customerId: caller.userId,
+          hostId,
+          transactionType: body.transactionType,
+          checkIn: body.checkIn ? new Date(body.checkIn) : null,
+          checkOut: body.checkOut ? new Date(body.checkOut) : null,
+          nights: body.nights ?? null,
+          grossAmountHalalahs: gross,
+          currency: body.currency,
+          idempotencyKey: body.idempotencyKey ?? null,
+        },
+      });
     });
 
     // Attach a quote preview to the response.
@@ -68,8 +96,7 @@ export default async function bookingRoutes(app: FastifyInstance) {
       include: { items: true, payments: true, invoice: true, property: true },
     });
     if (!booking) throw notFound('booking not found');
-    const isAdmin = caller.role === 'ADMIN' || caller.role === 'FINANCE_ADMIN' || caller.role === 'SUPER_ADMIN';
-    if (booking.customerId !== caller.userId && !isAdmin && caller.userId !== booking.hostId) {
+    if (booking.customerId !== caller.userId && !isAdminRole(caller.role) && caller.userId !== booking.hostId) {
       // Owners/hosts/admin can read; others 404 to avoid probing.
       throw notFound('booking not found');
     }

@@ -14,6 +14,8 @@ import { ZodError } from 'zod';
 import { config } from './config.js';
 import { loggerOptions } from './logger.js';
 import { AppError } from './errors.js';
+import authRoutes from './routes/auth.js';
+import propertyRoutes from './routes/properties.js';
 import bookingRoutes from './routes/bookings.js';
 import paymentRoutes from './routes/payments.js';
 import webhookRoutes from './routes/webhook.js';
@@ -37,6 +39,8 @@ export async function buildServer() {
     await scope.register(webhookRoutes);
   });
 
+  await app.register(authRoutes);
+  await app.register(propertyRoutes);
   await app.register(bookingRoutes);
   await app.register(paymentRoutes);
   await app.register(refundRoutes);
@@ -47,11 +51,14 @@ export async function buildServer() {
   await app.register(beneficiaryRoutes);
 
   app.setErrorHandler((err, req, reply) => {
-    if (err instanceof AppError) {
-      return reply.code(err.httpStatus).send({ error: err.code, message: err.message, details: err.details });
+    // Duck-type on httpStatus so bundler / cross-module identity issues don't
+    // downgrade a known AppError to 500.
+    const e = err as { httpStatus?: number; code?: string; message?: string; details?: unknown; name?: string };
+    if (typeof e.httpStatus === 'number' && (err instanceof AppError || e.code)) {
+      return reply.code(e.httpStatus).send({ error: e.code, message: e.message, details: e.details });
     }
-    if (err instanceof ZodError) {
-      return reply.code(400).send({ error: 'VALIDATION', issues: err.issues });
+    if (err instanceof ZodError || e.name === 'ZodError') {
+      return reply.code(400).send({ error: 'VALIDATION', issues: (err as ZodError).issues });
     }
     req.log.error({ err }, 'unhandled error');
     return reply.code(500).send({ error: 'INTERNAL', message: 'internal server error' });

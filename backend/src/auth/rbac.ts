@@ -1,16 +1,18 @@
 /**
- * Minimal RBAC guard.
+ * RBAC guard — dual-mode:
  *
- * In production, plug in a real JWT verifier (e.g. verify Firebase / your OTP
- * provider). For now we accept `x-user-id` + `x-user-role` headers so the API
- * is usable behind a private admin gateway and easy to test.
+ *   Preferred: `Authorization: Bearer <jwt>` (HS256, issued by /v1/auth/otp/verify).
+ *   Dev fallback: `x-user-id` + `x-user-role` headers, ONLY when NODE_ENV=development.
+ *   In production, the header fallback is disabled and unauthorised requests get 401.
  *
- * NEVER trust these headers on a public endpoint without an upstream gateway
- * enforcing them from a verified token.
+ * The gateway/edge in production should still verify the JWT before this layer,
+ * but this layer is the last defence in depth.
  */
 
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { forbidden, unauthorized } from '../errors.js';
+import { verifyAccessToken } from './jwt.js';
+import { config } from '../config.js';
 
 export type Role =
   | 'CUSTOMER'
@@ -27,11 +29,33 @@ export const ADMIN_ROLES: Role[] = ['ADMIN', 'FINANCE_ADMIN', 'SUPER_ADMIN'];
 
 export interface CallerContext { userId: string; role: Role; }
 
+export function isAdminRole(role: Role): boolean {
+  return ADMIN_ROLES.includes(role);
+}
+
 export function getCaller(req: FastifyRequest): CallerContext | null {
-  const userId = req.headers['x-user-id'];
-  const role = req.headers['x-user-role'];
-  if (typeof userId !== 'string' || typeof role !== 'string') return null;
-  return { userId, role: role as Role };
+  // 1. Bearer JWT
+  const authz = req.headers['authorization'];
+  if (typeof authz === 'string' && authz.startsWith('Bearer ')) {
+    const token = authz.slice(7).trim();
+    if (token) {
+      try {
+        const { userId, role } = verifyAccessToken(token);
+        return { userId, role };
+      } catch {
+        // fall through — headers might still work in dev
+      }
+    }
+  }
+  // 2. Dev-only header fallback
+  if (config.NODE_ENV === 'development' || config.NODE_ENV === 'test') {
+    const userId = req.headers['x-user-id'];
+    const role = req.headers['x-user-role'];
+    if (typeof userId === 'string' && typeof role === 'string') {
+      return { userId, role: role as Role };
+    }
+  }
+  return null;
 }
 
 export function requireAuth(req: FastifyRequest, _reply: FastifyReply): CallerContext {

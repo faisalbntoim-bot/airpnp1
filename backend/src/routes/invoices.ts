@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { getPrisma } from '../db.js';
-import { requireAuth } from '../auth/rbac.js';
+import { requireAuth, isAdminRole } from '../auth/rbac.js';
 import { notFound } from '../errors.js';
 import { jsonSafe } from '../money.js';
 
@@ -13,9 +13,8 @@ export default async function invoiceRoutes(app: FastifyInstance) {
       include: { booking: true, payment: true },
     });
     if (!invoice) throw notFound('invoice not found');
-    const isAdmin = caller.role === 'ADMIN' || caller.role === 'FINANCE_ADMIN' || caller.role === 'SUPER_ADMIN';
     if (
-      !isAdmin &&
+      !isAdminRole(caller.role) &&
       invoice.booking?.customerId !== caller.userId &&
       invoice.booking?.hostId !== caller.userId
     ) {

@@ -5,14 +5,13 @@ Snapshot of the Fastify + Prisma backend surface on branch `claude/web-app-airpn
 **Base URL** (development): `http://localhost:4000`
 **Production**: `https://api.sakanhub.example` (placeholder — set via env)
 
-**Auth (development)**: two headers on every non-webhook request.
+**Auth**: Bearer JWT.
 
 ```
-x-user-id: <cuid>          # e.g. clzabc1234...
-x-user-role: <Role>        # CUSTOMER | HOST | OWNER | OFFICE | MARKETER | ADMIN | FINANCE_ADMIN | SUPER_ADMIN
+Authorization: Bearer <access_token>       # issued by /v1/auth/otp/verify or /v1/auth/refresh
 ```
 
-In production these headers must be set by an upstream API gateway from a verified JWT/OTP claim — never by the client. See `backend/src/auth/rbac.ts`.
+The `x-user-id` + `x-user-role` header pair is accepted **only** when `NODE_ENV` is `development` or `test`. In `production` it is rejected — the JWT is the only auth path. See `backend/src/auth/rbac.ts`.
 
 **Money**: every monetary field is a `BigInt` halalah (1 SAR = 100 halalahs), returned as a **string** to preserve precision through JSON. `"31725"` = 317.25 SAR.
 
@@ -29,10 +28,95 @@ No auth. → `{ "ok": true, "env": "development" }`
 
 ---
 
+## Auth
+
+### `POST /v1/auth/otp`
+No auth. Rate-limited to 3 requests per phone per 10-minute rolling window.
+
+```jsonc
+// Request
+{ "phone": "+9665XXXXXXXX" }
+// 200 OK
+{ "requestId": "clz…", "expiresInSeconds": 300 }
+```
+
+In `NODE_ENV=development` the 6-digit code is logged to the server console. In production a real SMS provider (Unifonic / Twilio) must be wired in `src/auth/otp.ts:sendOtpSms`.
+
+Errors: `400 BAD_REQUEST` (bad phone), `409 CONFLICT` (rate-limited).
+
+### `POST /v1/auth/otp/verify`
+Auto-signup by phone. Consumes the challenge on success, revokes it on 5 wrong attempts.
+
+```jsonc
+// Request
+{ "requestId": "clz…", "phone": "+9665XXXXXXXX", "code": "123456", "nameAr": "…" /* optional on first signup */ }
+// 200 OK
+{
+  "user": { "id": "clz…", "phone": "+9665…", "nameAr": "…", "role": "CUSTOMER" },
+  "accessToken":      "<jwt>",                // 15 min TTL
+  "refreshToken":     "<opaque base64url>",   // 30 day TTL, hashed at rest, one-time use (rotated)
+  "accessExpiresIn":  900,
+  "refreshExpiresIn": 2592000
+}
+```
+
+Errors: `401 UNAUTHORIZED` (`invalid code` | `code expired` | `code already used` | `too many attempts` | `invalid request`).
+
+### `POST /v1/auth/refresh`
+Rotates the refresh token; revokes the presented one; issues a fresh pair.
+
+```jsonc
+{ "refreshToken": "<opaque>" }  →  { accessToken, refreshToken, accessExpiresIn, refreshExpiresIn }
+```
+
+Errors: `401 UNAUTHORIZED` (`unknown` | `revoked` | `expired`).
+
+### `POST /v1/auth/logout`
+Auth required. Body `{ refreshToken }` revokes just that token; empty body logs out this session's tokens by relying on `/refresh` rotation to also succeed only against a live token.
+
+### `GET /v1/auth/me`
+Auth required. Returns caller identity + all granted roles + the role from the current access token.
+
+---
+
+## Properties
+
+### `GET /v1/properties`
+No auth required for the public projection. Auth needed to filter by non-`available` status or by another user's `ownerId` (admin only for arbitrary owners).
+
+Query: `page`, `pageSize` (max 50), `search`, `category`, `purpose`, `city`, `status`, `ownerId`.
+
+```jsonc
+// 200 OK
+{
+  "items": [ { "id":"…", "listingNumber":"…", "category":"apartment", … /* ownerId hidden from public */ } ],
+  "page": 1, "pageSize": 20, "total": 42
+}
+```
+
+### `GET /v1/properties/:id`
+No auth for `available` listings. Hidden/reserved/sold/rented require auth: owner sees full record + `ownerId`; admin sees everything; others get `404`.
+
+### `GET /v1/properties/:id/availability`
+No auth. Overlap of existing `pending_payment` + `confirmed` bookings against the query window.
+
+```jsonc
+// GET /v1/properties/:id/availability?from=…&to=…
+{
+  "propertyId": "…",
+  "from": "2026-09-01T…", "to": "2026-09-10T…",
+  "isAvailable": false,
+  "bookedRanges": [ { "from": "…", "to": "…", "bookingId": "…", "status": "confirmed" } ]
+}
+```
+
+
+---
+
 ## Bookings
 
 ### `POST /v1/bookings`
-Auth: any role. Creates a booking in `draft`.
+Auth: any role. Creates a booking in `draft`. Rejects overlapping bookings for the same property (`409 CONFLICT`) and currency mismatches against the property (`400 BAD_REQUEST`).
 
 ```jsonc
 // Request
@@ -117,7 +201,7 @@ Returns booking + items + payments + invoice + property.
 ## Payments
 
 ### `POST /v1/payments`
-Auth: any authenticated user (⚠️ no ownership check — see IDOR B2 in audit).
+Auth: booking.customer (or any admin). Non-owners receive `404 NOT_FOUND` to avoid probing.
 
 ```jsonc
 // Request
@@ -155,7 +239,7 @@ Dedup by `(provider, externalEventId)`. Returns `{ok:true}` or `{ok:true, duplic
 ## Refunds
 
 ### `POST /v1/payments/:id/refund`
-Auth: `ADMIN | FINANCE_ADMIN | SUPER_ADMIN | OFFICE | HOST` (⚠️ **missing** ownership check per audit B1 — any HOST can currently refund any payment).
+Auth: `ADMIN | FINANCE_ADMIN | SUPER_ADMIN` unconditionally, or `HOST` where `booking.hostId === caller.userId`, or `OFFICE` where either the property owner or `booking.officeId` is the caller. Unauthorised roles → `404 NOT_FOUND`.
 
 ```jsonc
 // Request (empty = full refund)

@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { getPrisma } from '../db.js';
-import { requireAuth } from '../auth/rbac.js';
+import { requireAuth, isAdminRole } from '../auth/rbac.js';
 import { startCheckout } from '../financial/payment.orchestrator.js';
 import { newIdempotencyKey } from '../idempotency.js';
 import { notFound } from '../errors.js';
@@ -19,8 +19,16 @@ const startSchema = z.object({
 
 export default async function paymentRoutes(app: FastifyInstance) {
   app.post('/v1/payments', async (req, reply) => {
-    requireAuth(req, reply);
+    const caller = requireAuth(req, reply);
     const body = startSchema.parse(req.body);
+
+    // IDOR guard: only the booking's customer (or an admin) may start its checkout.
+    const booking = await getPrisma().booking.findUnique({ where: { id: body.bookingId } });
+    if (!booking) throw notFound('booking not found');
+    if (!isAdminRole(caller.role) && booking.customerId !== caller.userId) {
+      throw notFound('booking not found');
+    }
+
     const idempotencyKey =
       (req.headers['idempotency-key'] as string | undefined) ?? newIdempotencyKey();
     const result = await startCheckout({
@@ -40,9 +48,8 @@ export default async function paymentRoutes(app: FastifyInstance) {
       include: { booking: true, refunds: true, invoice: true },
     });
     if (!payment) throw notFound('payment not found');
-    const isAdmin = caller.role === 'ADMIN' || caller.role === 'FINANCE_ADMIN' || caller.role === 'SUPER_ADMIN';
     if (
-      !isAdmin &&
+      !isAdminRole(caller.role) &&
       payment.booking?.customerId !== caller.userId &&
       payment.booking?.hostId !== caller.userId
     ) {

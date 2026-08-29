@@ -482,3 +482,39 @@ model IdempotencyKey {
 
   @@index([scope])
 }
+
+// =========================================================================
+// AUTHENTICATION — OTP + JWT REFRESH
+// =========================================================================
+
+/// One-time code challenges. `codeHash` = sha256(salt + code); never store the code itself.
+/// Rate-limit is enforced per phone by counting recent unconsumed challenges.
+model OtpChallenge {
+  id            String   @id @default(cuid())
+  phone         String                                // E.164 (+9665…)
+  codeHash      String                                // sha256(salt + code) as hex
+  salt          String                                // hex, 16 bytes
+  attempts      Int      @default(0)
+  maxAttempts   Int      @default(5)
+  expiresAt     DateTime
+  consumedAt    DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([phone, createdAt])
+  @@index([expiresAt])
+}
+
+/// Refresh tokens are stored hashed; rotation revokes the previous one.
+model RefreshToken {
+  id            String   @id @default(cuid())
+  userId        String
+  tokenHash     String   @unique                     // sha256(refreshToken) hex
+  parentId      String?                              // previous token in a rotation chain
+  userAgent     String?
+  ip            String?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, revokedAt])
+}

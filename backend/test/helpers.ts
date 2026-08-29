@@ -1,5 +1,26 @@
+import Fastify, { type FastifyInstance } from 'fastify';
+import { ZodError } from 'zod';
 import { getPrisma, disconnect } from '../src/db.js';
 import { halalahsFromMajor } from '../src/money.js';
+
+/** Test-scoped Fastify with the same error handler main.ts installs.
+ *  Uses duck-typing on `httpStatus` so cross-module `instanceof` doesn't matter under vitest. */
+export async function buildTestApp(register: (app: FastifyInstance) => Promise<void>): Promise<FastifyInstance> {
+  const app = Fastify({ logger: false });
+  app.setErrorHandler((err, _req, reply) => {
+    const e = err as { httpStatus?: number; code?: string; message?: string; details?: unknown; name?: string };
+    if (typeof e.httpStatus === 'number') {
+      return reply.code(e.httpStatus).send({ error: e.code, message: e.message, details: e.details });
+    }
+    if (err instanceof ZodError || e.name === 'ZodError') {
+      return reply.code(400).send({ error: 'VALIDATION', issues: (err as ZodError).issues });
+    }
+    return reply.code(500).send({ error: 'INTERNAL', message: 'internal server error' });
+  });
+  await register(app);
+  await app.ready();
+  return app;
+}
 
 export async function resetDb() {
   const prisma = getPrisma();
@@ -30,6 +51,8 @@ export async function resetDb() {
     prisma.auditLog.deleteMany(),
     prisma.idempotencyKey.deleteMany(),
     prisma.taxRecord.deleteMany(),
+    prisma.otpChallenge.deleteMany(),
+    prisma.refreshToken.deleteMany(),
   ]);
 }
 
