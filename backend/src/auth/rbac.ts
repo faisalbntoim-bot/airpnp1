@@ -12,7 +12,18 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { forbidden, unauthorized } from '../errors.js';
 
-export type Role = 'HOST' | 'OWNER' | 'OFFICE' | 'MARKETER' | 'CUSTOMER' | 'ADMIN';
+export type Role =
+  | 'CUSTOMER'
+  | 'HOST'
+  | 'OWNER'
+  | 'OFFICE'
+  | 'MARKETER'
+  | 'ADMIN'
+  | 'FINANCE_ADMIN'
+  | 'SUPER_ADMIN';
+
+/** Roles that carry admin-level authority over the financial engine. */
+export const ADMIN_ROLES: Role[] = ['ADMIN', 'FINANCE_ADMIN', 'SUPER_ADMIN'];
 
 export interface CallerContext { userId: string; role: Role; }
 

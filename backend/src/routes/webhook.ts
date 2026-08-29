@@ -79,6 +79,8 @@ export default async function webhookRoutes(app: FastifyInstance) {
         await capturePayment({
           paymentId: verified.paymentId,
           providerPaymentId: verified.providerPaymentId,
+          reportedAmountHalalahs: verified.amountHalalahs,
+          reportedCurrency: verified.currency,
         });
       } else if (verified.eventType === 'payment.failed' && verified.paymentId) {
         await prisma.payment.updateMany({

@@ -22,6 +22,7 @@ import walletRoutes from './routes/wallet.js';
 import invoiceRoutes from './routes/invoices.js';
 import adminRulesRoutes from './routes/admin.rules.js';
 import adminReportRoutes from './routes/admin.reports.js';
+import beneficiaryRoutes from './routes/beneficiaries.js';
 
 export async function buildServer() {
   const app = Fastify({ logger: loggerOptions, disableRequestLogging: config.NODE_ENV === 'test' });
@@ -43,6 +44,7 @@ export async function buildServer() {
   await app.register(invoiceRoutes);
   await app.register(adminRulesRoutes);
   await app.register(adminReportRoutes);
+  await app.register(beneficiaryRoutes);
 
   app.setErrorHandler((err, req, reply) => {
     if (err instanceof AppError) {

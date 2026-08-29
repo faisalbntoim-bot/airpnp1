@@ -12,7 +12,7 @@ const refundSchema = z.object({
 
 export default async function refundRoutes(app: FastifyInstance) {
   app.post('/v1/payments/:id/refund', async (req, reply) => {
-    const caller = requireRole(['ADMIN', 'OFFICE', 'HOST'])(req, reply);
+    const caller = requireRole(['ADMIN', 'FINANCE_ADMIN', 'SUPER_ADMIN', 'OFFICE', 'HOST'])(req, reply);
     const { id } = req.params as { id: string };
     const body = refundSchema.parse(req.body ?? {});
     const idempotencyKey =

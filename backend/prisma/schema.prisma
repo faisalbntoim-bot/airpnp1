@@ -228,7 +228,7 @@ model Payment {
   currency              String   @default("SAR")
   status                String   @default("pending") // pending | captured | failed | refunded | partial_refunded | cancelled
   provider              String                       // sandbox | moyasar | tap
-  providerPaymentId     String?
+  providerPaymentId     String?  @unique             // dedup by provider id
   providerStatus        String?
   gatewayFeeHalalahs    BigInt   @default(0)
   idempotencyKey        String   @unique
@@ -341,8 +341,10 @@ model Settlement {
   status             String   @default("PENDING") // PENDING | ELIGIBLE | PROCESSING | PAID | FAILED | CANCELLED
   scheduledAt        DateTime?
   processedAt        DateTime?
-  providerReference  String?
+  providerReference  String?  @unique
   failureReason      String?
+  retryCount         Int      @default(0)
+  lastRetryAt        DateTime?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -350,6 +352,7 @@ model Settlement {
   beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id])
 
   @@index([status])
+  @@index([beneficiaryId, status])
 }
 
 // =========================================================================

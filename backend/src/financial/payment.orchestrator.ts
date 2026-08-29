@@ -101,6 +101,10 @@ export async function capturePayment(args: {
   paymentId: string;
   providerPaymentId: string;
   gatewayFeeHalalahs?: bigint;
+  /** Optional: the amount the PSP says it captured. If provided, must match our row exactly. */
+  reportedAmountHalalahs?: bigint;
+  /** Optional: the currency the PSP reports. If provided, must match our row exactly. */
+  reportedCurrency?: string;
 }): Promise<void> {
   const prisma = getPrisma();
   await prisma.$transaction(async (tx) => {
@@ -109,6 +113,16 @@ export async function capturePayment(args: {
     if (payment.status === 'captured') return; // idempotent
     if (payment.status !== 'pending') throw conflict(`payment in status ${payment.status}, cannot capture`);
     if (payment.providerPaymentId !== args.providerPaymentId) throw badRequest('provider payment id mismatch');
+    // Amount + currency verification — never trust the webhook body blindly.
+    if (args.reportedAmountHalalahs != null && args.reportedAmountHalalahs !== payment.grossAmountHalalahs) {
+      throw badRequest(`webhook amount ${args.reportedAmountHalalahs} does not match payment ${payment.grossAmountHalalahs}`);
+    }
+    if (args.reportedCurrency != null && args.reportedCurrency !== payment.currency) {
+      throw badRequest(`webhook currency ${args.reportedCurrency} does not match payment ${payment.currency}`);
+    }
+    if (!payment.bookingId) {
+      throw badRequest('payment has no booking; cannot capture in this flow');
+    }
 
     const gatewayFee = args.gatewayFeeHalalahs ?? 0n;
     await tx.payment.update({

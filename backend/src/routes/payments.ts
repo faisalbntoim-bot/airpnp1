@@ -40,8 +40,9 @@ export default async function paymentRoutes(app: FastifyInstance) {
       include: { booking: true, refunds: true, invoice: true },
     });
     if (!payment) throw notFound('payment not found');
+    const isAdmin = caller.role === 'ADMIN' || caller.role === 'FINANCE_ADMIN' || caller.role === 'SUPER_ADMIN';
     if (
-      caller.role !== 'ADMIN' &&
+      !isAdmin &&
       payment.booking?.customerId !== caller.userId &&
       payment.booking?.hostId !== caller.userId
     ) {

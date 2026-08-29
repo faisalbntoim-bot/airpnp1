@@ -68,7 +68,8 @@ export default async function bookingRoutes(app: FastifyInstance) {
       include: { items: true, payments: true, invoice: true, property: true },
     });
     if (!booking) throw notFound('booking not found');
-    if (booking.customerId !== caller.userId && caller.role !== 'ADMIN' && caller.userId !== booking.hostId) {
+    const isAdmin = caller.role === 'ADMIN' || caller.role === 'FINANCE_ADMIN' || caller.role === 'SUPER_ADMIN';
+    if (booking.customerId !== caller.userId && !isAdmin && caller.userId !== booking.hostId) {
       // Owners/hosts/admin can read; others 404 to avoid probing.
       throw notFound('booking not found');
     }

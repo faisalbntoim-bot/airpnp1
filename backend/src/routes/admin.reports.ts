@@ -10,7 +10,7 @@ const rangeSchema = z.object({
 });
 
 export default async function adminReportRoutes(app: FastifyInstance) {
-  const adminOnly = requireRole(['ADMIN']);
+  const adminOnly = requireRole(['ADMIN', 'FINANCE_ADMIN', 'SUPER_ADMIN']);
 
   app.get('/v1/admin/overview', async (req, reply) => {
     adminOnly(req, reply);

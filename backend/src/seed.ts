@@ -117,11 +117,13 @@ async function seed() {
   });
 
   // ---- Ad products --------------------------------------------------------
+  // Spec defaults for advertisement pricing — admin can override at any time
+  // via POST /v1/admin/ad-products (nothing is hard-coded in engine code).
   for (const p of [
-    { code: 'NORMAL',   nameAr: 'إعلان عادي',   priceMajor: '0',   durationDays: 30 },
-    { code: 'FEATURED', nameAr: 'إعلان مميز',   priceMajor: '99',  durationDays: 30 },
-    { code: 'PREMIUM',  nameAr: 'إعلان بريميوم', priceMajor: '199', durationDays: 30 },
-    { code: 'VIP',      nameAr: 'إعلان VIP',    priceMajor: '499', durationDays: 30 },
+    { code: 'NORMAL',   nameAr: 'إعلان عادي',   priceMajor: '29',   durationDays: 30 },
+    { code: 'FEATURED', nameAr: 'إعلان مميز',   priceMajor: '49',   durationDays: 30 },
+    { code: 'PREMIUM',  nameAr: 'إعلان بريميوم', priceMajor: '99',  durationDays: 30 },
+    { code: 'VIP',      nameAr: 'إعلان VIP',    priceMajor: '299',  durationDays: 30 },
   ] as const) {
     await prisma.adProduct.upsert({
       where: { code: p.code },

@@ -31,6 +31,17 @@ export interface ProviderPayment {
   raw?: unknown;
 }
 
+export interface SplitPaymentInput {
+  amountHalalahs: bigint;
+  currency: string;
+  orderRef: string;
+  destinations: { beneficiaryId: string; amountHalalahs: bigint }[];
+  description?: string;
+  customer?: { name?: string; email?: string; phone?: string };
+  returnUrl?: string;
+  metadata?: Record<string, string>;
+}
+
 export interface RefundInput {
   providerPaymentId: string;
   amountHalalahs: bigint;
@@ -92,6 +103,8 @@ export interface PaymentProvider {
   readonly name: ProviderName;
 
   createPayment(input: CreatePaymentInput): Promise<ProviderPayment>;
+  /** Marketplace split-payment. Not every provider supports it — see the stubs. */
+  createSplitPayment(input: SplitPaymentInput): Promise<ProviderPayment>;
   getPayment(providerPaymentId: string): Promise<ProviderPayment>;
   verifyPayment(providerPaymentId: string): Promise<ProviderPayment>;
   refundPayment(input: RefundInput): Promise<ProviderRefund>;

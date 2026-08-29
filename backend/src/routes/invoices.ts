@@ -13,8 +13,9 @@ export default async function invoiceRoutes(app: FastifyInstance) {
       include: { booking: true, payment: true },
     });
     if (!invoice) throw notFound('invoice not found');
+    const isAdmin = caller.role === 'ADMIN' || caller.role === 'FINANCE_ADMIN' || caller.role === 'SUPER_ADMIN';
     if (
-      caller.role !== 'ADMIN' &&
+      !isAdmin &&
       invoice.booking?.customerId !== caller.userId &&
       invoice.booking?.hostId !== caller.userId
     ) {

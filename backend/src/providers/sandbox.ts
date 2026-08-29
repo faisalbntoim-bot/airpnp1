@@ -13,6 +13,7 @@ import type {
   PaymentProvider, CreatePaymentInput, ProviderPayment,
   RefundInput, ProviderRefund, CreateBeneficiaryInput, ProviderBeneficiary,
   CreatePayoutInput, ProviderPayout, WebhookVerifyInput, VerifiedWebhook,
+  SplitPaymentInput,
 } from './payment-provider.js';
 
 const WEBHOOK_SECRET = 'sandbox-webhook-secret';
@@ -42,6 +43,20 @@ export class SandboxProvider implements PaymentProvider {
       orderRef: input.orderRef, refundedHalalahs: 0n,
     });
     return { providerPaymentId: id, status: 'initiated', redirectUrl: `sandbox://checkout/${id}` };
+  }
+
+  async createSplitPayment(input: SplitPaymentInput): Promise<ProviderPayment> {
+    const sum = input.destinations.reduce((s, d) => s + d.amountHalalahs, 0n);
+    if (sum > input.amountHalalahs) {
+      throw new Error(`sandbox: split destinations (${sum}) exceed total (${input.amountHalalahs})`);
+    }
+    const id = `sb_split_${crypto.randomBytes(6).toString('hex')}`;
+    payments.set(id, {
+      providerPaymentId: id, status: 'initiated',
+      amountHalalahs: input.amountHalalahs, currency: input.currency,
+      orderRef: input.orderRef, refundedHalalahs: 0n,
+    });
+    return { providerPaymentId: id, status: 'initiated', redirectUrl: `sandbox://split/${id}` };
   }
 
   async getPayment(id: string): Promise<ProviderPayment> {

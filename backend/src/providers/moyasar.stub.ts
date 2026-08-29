@@ -14,6 +14,7 @@ import type {
   PaymentProvider, CreatePaymentInput, ProviderPayment,
   RefundInput, ProviderRefund, CreateBeneficiaryInput, ProviderBeneficiary,
   CreatePayoutInput, ProviderPayout, WebhookVerifyInput, VerifiedWebhook,
+  SplitPaymentInput,
 } from './payment-provider.js';
 import { notImplemented } from '../errors.js';
 
@@ -26,6 +27,7 @@ export class MoyasarProvider implements PaymentProvider {
     }
   }
   async createPayment(_input: CreatePaymentInput): Promise<ProviderPayment> { throw notImplemented('moyasar.createPayment: wire the real REST call'); }
+  async createSplitPayment(_input: SplitPaymentInput): Promise<ProviderPayment> { throw notImplemented('moyasar.createSplitPayment: Moyasar does not offer native marketplace splits — implement post-capture payouts instead'); }
   async getPayment(_id: string): Promise<ProviderPayment>                     { throw notImplemented('moyasar.getPayment'); }
   async verifyPayment(_id: string): Promise<ProviderPayment>                  { throw notImplemented('moyasar.verifyPayment'); }
   async refundPayment(_input: RefundInput): Promise<ProviderRefund>           { throw notImplemented('moyasar.refundPayment'); }

@@ -65,7 +65,7 @@ const subscriptionPlanSchema = z.object({
 });
 
 export default async function adminRulesRoutes(app: FastifyInstance) {
-  const adminOnly = requireRole(['ADMIN']);
+  const adminOnly = requireRole(['ADMIN', 'FINANCE_ADMIN', 'SUPER_ADMIN']);
 
   // Commission rules
   app.get('/v1/admin/commission-rules', async (req, reply) => {
