@@ -10,7 +10,7 @@ final class SearchViewModel: ObservableObject {
     private let repo: PropertyRepository
     private let ai: AIRecommendationService
 
-    init(repo: PropertyRepository, ai: AIRecommendationService = MockAIRecommendationService()) {
+    init(repo: PropertyRepository, ai: AIRecommendationService = RepositoryFactory.aiRecommendationService()) {
         self.repo = repo; self.ai = ai
     }
 

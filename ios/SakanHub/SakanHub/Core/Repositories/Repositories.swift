@@ -78,7 +78,7 @@ actor MockFavoriteRepository: FavoriteRepository {
             favs.remove(at: i)
             return false
         }
-        favs.append(.init(id: UUID(), userID: userID, propertyID: propertyID, savedAt: .now, note: nil))
+        favs.append(.init(id: UUID().uuidString, userID: userID, propertyID: propertyID, savedAt: .now, note: nil))
         return true
     }
 }

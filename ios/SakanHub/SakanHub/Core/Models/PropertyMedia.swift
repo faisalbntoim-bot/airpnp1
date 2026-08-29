@@ -1,7 +1,7 @@
 import Foundation
 
 struct PropertyMedia: Identifiable, Codable, Hashable {
-    let id: UUID
+    let id: String
     var kind: Kind
     var url: URL                    // remote or bundle:/// scheme
     var thumbnailURL: URL?

@@ -1,7 +1,7 @@
 import Foundation
 
 struct Office: Identifiable, Codable, Hashable {
-    let id: UUID
+    let id: String
     var name: String
     var licenseNumber: String       // e.g. FAL 1200008845
     var ownerUserID: User.ID

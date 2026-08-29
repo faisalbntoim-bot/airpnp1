@@ -68,6 +68,22 @@ enum RepositoryFactory {
     static func paymentService() -> PaymentService {
         currentUsesMocks ? MockPaymentService() : HttpPaymentServiceAdapter()
     }
+
+    /// AI recommendations are backed by a future `/v1/ai/*` endpoint. Until
+    /// that ships, Production returns a strict "not implemented" service that
+    /// throws — it does NOT fall back to Mock. Dev/preview get the mock.
+    static func aiRecommendationService() -> AIRecommendationService {
+        currentUsesMocks ? MockAIRecommendationService() : DisabledAIRecommendationService()
+    }
+}
+
+/// Production-safe stand-in until a real AI backend exists.
+/// Never fabricates recommendations — throws `APIError.notImplemented` so the
+/// UI can hide the affordance rather than show fake data.
+struct DisabledAIRecommendationService: AIRecommendationService {
+    func filterFromNaturalLanguage(_ prompt: String) async throws -> SearchFilter { throw APIError.notImplemented }
+    func evaluate(property: Property) async throws -> AIEvaluation { throw APIError.notImplemented }
+    func summarise(property: Property) async throws -> String { throw APIError.notImplemented }
 }
 
 // MARK: - Adapters for legacy protocols
@@ -135,7 +151,7 @@ actor HttpAuthUserAdapter: UserRepository {
              .financeAdmin, .superAdmin: role = .seeker
         }
         return User(
-            id: UUID(),                                 // legacy id shape — API id kept for reference below
+            id: u.id,                                   // cuid pass-through
             name: u.nameAr,
             phone: u.phone,
             email: u.email,

@@ -2,7 +2,7 @@ import Foundation
 import CoreLocation
 
 struct Property: Identifiable, Codable, Hashable {
-    let id: UUID
+    let id: String
     var listingNumber: String       // human-friendly ID (e.g. LAND-1042)
     var title: String
     var summary: String

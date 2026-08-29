@@ -3,7 +3,7 @@ import Foundation
 /// Seeded demo data so previews and the app work without a backend.
 enum MockData {
     static let demoUser = User(
-        id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
+        id: "mock_user_faisal",
         name: "فيصل الحربي",
         phone: "+966512345678",
         email: "faisal@example.com",
@@ -14,11 +14,11 @@ enum MockData {
         createdAt: .now
     )
 
-    static let ownerUserID = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+    static let ownerUserID: String = "mock_user_owner"
 
     static let offices: [Office] = [
         .init(
-            id: UUID(uuidString: "33333333-3333-3333-3333-333333333333")!,
+            id: "mock_office_riyadh",
             name: "مكتب الرياض العقاري",
             licenseNumber: "1200008845",
             ownerUserID: ownerUserID,
@@ -91,10 +91,10 @@ enum MockData {
     ]
 
     static let notifications: [AppNotification] = [
-        .init(id: UUID(), kind: .newMatch, title: "عقار جديد يطابق بحثك",
+        .init(id: UUID().uuidString, kind: .newMatch, title: "عقار جديد يطابق بحثك",
               body: "شقة ٣ غرف في حي النرجس ضمن ميزانيتك.",
               propertyID: properties.first?.id, isRead: false, createdAt: .now),
-        .init(id: UUID(), kind: .priceChanged, title: "تغيّر سعر عقار محفوظ",
+        .init(id: UUID().uuidString, kind: .priceChanged, title: "تغيّر سعر عقار محفوظ",
               body: "انخفض سعر «فيلا حي الملقا» بمقدار ٥٠٬٠٠٠ ر.س.",
               propertyID: properties[safe: 2]?.id, isRead: true,
               createdAt: .now.addingTimeInterval(-3600 * 24 * 2))
@@ -111,7 +111,7 @@ enum MockData {
         polygon: [(Double, Double)]? = nil
     ) -> Property {
         Property(
-            id: UUID(),
+            id: UUID().uuidString,
             listingNumber: "P-\(Int.random(in: 1000...9999))",
             title: title,
             summary: "\(title) — سعر ضمن السوق، هوية وملكية موثّقة، جاهز للسكن.",

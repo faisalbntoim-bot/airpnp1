@@ -1,7 +1,7 @@
 import Foundation
 
 struct Booking: Identifiable, Codable, Hashable {
-    let id: UUID
+    let id: String
     var propertyID: Property.ID
     var guestID: User.ID
     var checkIn: Date

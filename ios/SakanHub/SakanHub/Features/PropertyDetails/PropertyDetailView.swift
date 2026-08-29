@@ -14,7 +14,7 @@ final class PropertyDetailViewModel: ObservableObject {
 
     init(repo: PropertyRepository,
          favs: FavoriteRepository,
-         ai: AIRecommendationService = MockAIRecommendationService()) {
+         ai: AIRecommendationService = RepositoryFactory.aiRecommendationService()) {
         self.repo = repo; self.favs = favs; self.ai = ai
     }
 

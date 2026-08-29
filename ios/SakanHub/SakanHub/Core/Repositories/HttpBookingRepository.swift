@@ -7,8 +7,10 @@ struct HttpBookingRepository: BookingRepository {
     init(client: APIClient = .shared) { self.client = client }
 
     func list(forGuest _: User.ID) async throws -> [Booking] {
-        // The backend currently exposes /v1/bookings/:id but no per-user list — reserved for future.
-        []
+        // The backend scopes /v1/bookings by the JWT — the guestId parameter is
+        // ignored on purpose (the caller can only see their OWN bookings).
+        let page: APIPagedBookings = try await client.get("/v1/bookings", query: ["page": "1", "pageSize": "50"])
+        return page.items.map(Self.toDomain(_:))
     }
 
     func availability(for propertyID: Property.ID) async throws -> Set<Date> {
@@ -56,5 +58,40 @@ struct HttpBookingRepository: BookingRepository {
         let propertyType: String?
         let grossAmount: String
         let currency: String
+    }
+
+    func apiList(page: Int = 1, pageSize: Int = 20, status: String? = nil) async throws -> APIPagedBookings {
+        var q: [String: String] = ["page": String(page), "pageSize": String(pageSize)]
+        if let status { q["status"] = status }
+        return try await client.get("/v1/bookings", query: q)
+    }
+
+    // MARK: - Projection
+
+    static func toDomain(_ b: APIBooking) -> Booking {
+        Booking(
+            id: b.id,
+            propertyID: b.propertyId,
+            guestID: b.customerId,
+            checkIn: b.checkIn ?? .distantPast,
+            checkOut: b.checkOut ?? .distantPast,
+            nights: b.nights ?? 0,
+            pricePerNightSAR: 0,
+            cleaningFeeSAR: 0,
+            serviceFeeSAR: 0,
+            vatSAR: 0,
+            totalSAR: NSDecimalNumber(decimal: b.grossAmountHalalahs.majorDecimal).doubleValue,
+            status: Self.toLegacyStatus(b.status),
+            createdAt: b.createdAt
+        )
+    }
+
+    private static func toLegacyStatus(_ s: APIBookingStatus) -> Booking.Status {
+        switch s {
+        case .draft, .pendingPayment: return .pending
+        case .confirmed:              return .confirmed
+        case .cancelled:              return .cancelled
+        case .completed:              return .completed
+        }
     }
 }

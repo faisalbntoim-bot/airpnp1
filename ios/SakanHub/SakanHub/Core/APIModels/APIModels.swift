@@ -278,3 +278,19 @@ struct APIRefundResult: Codable, Sendable {
     let amountHalalahs: Money
     let status: APIRefundStatus
 }
+
+// MARK: - Paged envelopes
+
+struct APIPagedBookings: Codable, Sendable {
+    let items: [APIBooking]
+    let page: Int
+    let pageSize: Int
+    let total: Int
+}
+
+struct APIPagedInvoices: Codable, Sendable {
+    let items: [APIInvoice]
+    let page: Int
+    let pageSize: Int
+    let total: Int
+}

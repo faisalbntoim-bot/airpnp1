@@ -29,10 +29,13 @@ struct HttpPropertyRepository: PropertyRepository {
     }
 
     func get(id: Property.ID) async throws -> Property? {
-        // Legacy IDs are UUIDs; the API uses cuids. When called with a legacy UUID
-        // we can't resolve it — real callers should use `apiProperty(id:)` below.
-        _ = id
-        return nil
+        // Property.ID is now String (cuid). Direct lookup against the API.
+        do {
+            let api = try await apiProperty(id: id)
+            return Self.toDomain(api)
+        } catch APIError.notFound {
+            return nil
+        }
     }
 
     func nearby(centre: CLLocationCoordinate2D, radiusMeters: Double) async throws -> [Property] {
@@ -102,7 +105,7 @@ struct HttpPropertyRepository: PropertyRepository {
 
     static func toDomain(_ p: APIProperty) -> Property {
         Property(
-            id: UUID(),
+            id: p.id,                                              // cuid pass-through — no synthesis
             listingNumber: p.listingNumber,
             title: p.listingNumber,
             summary: "",
@@ -119,8 +122,8 @@ struct HttpPropertyRepository: PropertyRepository {
             features: PropertyFeatures(),
             media: [],
             model3D: nil, tour: nil,
-            ownerID: UUID(),
-            officeID: nil,
+            ownerID: p.ownerId ?? "",                              // empty when not exposed (public projection)
+            officeID: p.officeId,
             agentIDs: [],
             createdAt: p.createdAt,
             updatedAt: p.updatedAt,

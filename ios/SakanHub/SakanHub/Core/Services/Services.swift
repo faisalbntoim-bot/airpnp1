@@ -30,11 +30,11 @@ protocol MessagingService {
 }
 
 struct Conversation: Identifiable, Hashable {
-    let id: UUID
+    let id: String
     var propertyID: Property.ID
     var messages: [Message]
     struct Message: Identifiable, Hashable {
-        let id: UUID
+        let id: String
         var text: String
         var fromMe: Bool
         var sentAt: Date
@@ -46,7 +46,7 @@ struct MockMessagingService: MessagingService {
         try await Task.sleep(nanoseconds: 200_000_000)
     }
     func openConversation(propertyID: Property.ID) async throws -> Conversation {
-        .init(id: UUID(), propertyID: propertyID, messages: [])
+        .init(id: UUID().uuidString, propertyID: propertyID, messages: [])
     }
 }
 
@@ -106,7 +106,7 @@ struct MockAIRecommendationService: AIRecommendationService {
 /// Small facade around `UIActivityViewController` / Web Share.
 enum ShareService {
     static func shareLink(for property: Property) -> URL {
-        URL(string: "https://sakan.app/p/\(property.id.uuidString)")!
+        URL(string: "https://sakan.app/p/\(property.id)")!
     }
     static func shareText(for property: Property) -> String {
         "\(property.title) — \(Int(property.priceSAR)) ر.س\n\(shareLink(for: property).absoluteString)"

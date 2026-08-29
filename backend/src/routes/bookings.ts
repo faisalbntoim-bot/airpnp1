@@ -88,6 +88,44 @@ export default async function bookingRoutes(app: FastifyInstance) {
     return jsonSafe({ booking, quote });
   });
 
+  app.get('/v1/bookings', async (req, reply) => {
+    const caller = requireAuth(req, reply);
+    const q = z.object({
+      page: z.coerce.number().int().min(1).max(1000).default(1),
+      pageSize: z.coerce.number().int().min(1).max(50).default(20),
+      status: z.enum(['draft', 'pending_payment', 'confirmed', 'cancelled', 'completed']).optional(),
+      sort: z.enum(['createdAt.asc', 'createdAt.desc', 'checkIn.asc', 'checkIn.desc']).default('createdAt.desc'),
+    }).parse(req.query ?? {});
+
+    // Auth scope: the caller's userId — NEVER read a guestId query parameter.
+    // Admins may pass ?customerId=... explicitly to look up another user (admin-only).
+    const adminCustomerId = req.query && typeof (req.query as Record<string, unknown>).customerId === 'string'
+      ? (req.query as Record<string, string>).customerId
+      : undefined;
+    let customerId = caller.userId;
+    if (adminCustomerId) {
+      if (caller.role !== 'ADMIN' && caller.role !== 'FINANCE_ADMIN' && caller.role !== 'SUPER_ADMIN') {
+        // Non-admins requesting someone else's list get an empty list, not a 403 (avoids probing).
+        return { items: [], page: q.page, pageSize: q.pageSize, total: 0 };
+      }
+      customerId = adminCustomerId;
+    }
+
+    const prisma = getPrisma();
+    const where = { customerId, ...(q.status ? { status: q.status } : {}) };
+    const [sortField, sortDir] = q.sort.split('.') as ['createdAt' | 'checkIn', 'asc' | 'desc'];
+    const [total, rows] = await Promise.all([
+      prisma.booking.count({ where }),
+      prisma.booking.findMany({
+        where,
+        orderBy: { [sortField]: sortDir },
+        skip: (q.page - 1) * q.pageSize,
+        take: q.pageSize,
+      }),
+    ]);
+    return jsonSafe({ items: rows, page: q.page, pageSize: q.pageSize, total });
+  });
+
   app.get('/v1/bookings/:id', async (req, reply) => {
     const caller = requireAuth(req, reply);
     const { id } = req.params as { id: string };

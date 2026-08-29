@@ -25,7 +25,7 @@ let package = Package(
             ],
             path: "SakanHub",
             exclude: [
-                "Info.plist.template",
+                "Info.plist",
                 "Resources/Lottie/README.md",
             ],
             resources: [

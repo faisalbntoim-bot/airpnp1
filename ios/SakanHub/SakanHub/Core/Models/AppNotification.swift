@@ -2,7 +2,7 @@ import Foundation
 
 /// Named `AppNotification` to avoid clashing with `Foundation.Notification`.
 struct AppNotification: Identifiable, Codable, Hashable {
-    let id: UUID
+    let id: String
     var kind: Kind
     var title: String
     var body: String

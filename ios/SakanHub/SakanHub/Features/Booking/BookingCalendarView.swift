@@ -157,7 +157,7 @@ struct BookingCalendarView: View {
         let rate = property.dailyRateSAR ?? 0
         let sub = Double(n) * rate, cleaning = 120.0, service = sub * 0.12, vat = service * 0.15
         let b = Booking(
-            id: UUID(),
+            id: UUID().uuidString,
             propertyID: property.id, guestID: MockData.demoUser.id,
             checkIn: ci, checkOut: co, nights: n,
             pricePerNightSAR: rate, cleaningFeeSAR: cleaning,

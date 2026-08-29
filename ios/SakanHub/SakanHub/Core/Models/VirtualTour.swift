@@ -5,14 +5,14 @@ struct VirtualTour: Codable, Hashable {
     var startRoomID: UUID?
 
     struct Room: Identifiable, Codable, Hashable {
-        let id: UUID
+        let id: String
         var name: String                // "الصالة", "المطبخ"...
         var panoramaURL: URL            // 360 equirectangular image
         var hotspots: [TourHotspot]
     }
 
     struct TourHotspot: Identifiable, Codable, Hashable {
-        let id: UUID
+        let id: String
         var label: String
         /// Direction the hotspot lives at (spherical), in degrees.
         var yawDegrees: Double
@@ -20,7 +20,7 @@ struct VirtualTour: Codable, Hashable {
         var action: Action
 
         enum Action: Codable, Hashable {
-            case navigate(roomID: UUID)
+            case navigate(roomID: String)
             case info(title: String, body: String)
             case openAR
         }

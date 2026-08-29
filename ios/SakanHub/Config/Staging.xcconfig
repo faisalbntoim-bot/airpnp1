@@ -1,0 +1,7 @@
+#include "Shared.xcconfig"
+
+// Staging scheme — real backend but with sandbox PSP credentials.
+API_BASE_URL = https:/$()/staging.sakanhub.example
+USE_MOCKS = NO
+
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) STAGING

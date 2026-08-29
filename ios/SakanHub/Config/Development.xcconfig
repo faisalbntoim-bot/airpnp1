@@ -1,0 +1,8 @@
+#include "Shared.xcconfig"
+
+// Development scheme — talks to a local backend. Mocks allowed for previews.
+API_BASE_URL = http:/$()/localhost:4000
+USE_MOCKS = YES
+
+// Active compilation conditions. The trailing spaces are significant in .xcconfig.
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) DEBUG
