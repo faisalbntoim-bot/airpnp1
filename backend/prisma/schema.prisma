@@ -97,11 +97,98 @@ model Property {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  // ---- REGA advertisement compliance (nullable — populated when the listing
+  //      goes through the SUBMITTED → VERIFIED → PUBLISHED lifecycle) ----
+  advertisementLifecycle String  @default("DRAFT")   // DRAFT | SUBMITTED | VERIFIED | PUBLISHED | EXPIRED | SUSPENDED | REMOVED
+  regaLicenseNumber      String?                     // REGA advertisement licence — visible per REGA rules
+  regaLicenseIssuedAt    DateTime?
+  regaLicenseExpiresAt   DateTime?
+  regaSubmittedAt        DateTime?
+  regaVerifiedAt         DateTime?
+  regaVerifiedByUserId   String?                     // admin who confirmed
+  regaSuspendedAt        DateTime?
+  regaSuspendReason      String?
+  regaComplianceRef      String?                     // opaque external reference
+
   owner  User          @relation("PropertyOwner", fields: [ownerId], references: [id])
   hosts  PropertyHost[]
   bookings Booking[]
+  complaints Complaint[]
 
   @@index([ownerId])
+  @@index([advertisementLifecycle])
+  @@index([regaLicenseNumber])
+}
+
+// =========================================================================
+// ADVERTISER + IDENTITY VERIFICATION (Nafath-shaped, no live provider yet)
+// =========================================================================
+
+/// Represents a Nafath / Elm / manual identity verification event.
+/// We NEVER store the raw national-id here — only the provider's opaque
+/// reference and the outcome.
+model AdvertiserVerification {
+  id            String   @id @default(cuid())
+  userId        String
+  provider      String                              // nafath | elm | manual
+  externalRef   String?                             // opaque; NEVER the raw ID
+  documentType  String?                             // national_id | iqama | cr
+  status        String   @default("pending")        // pending | verified | rejected | expired
+  verifiedAt    DateTime?
+  expiresAt     DateTime?
+  rejectionReason String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([status, expiresAt])
+}
+
+// =========================================================================
+// COMPLAINTS
+// =========================================================================
+
+model Complaint {
+  id             String    @id @default(cuid())
+  complainantId  String?                            // nullable — anonymous complaints allowed
+  propertyId     String?
+  bookingId      String?
+  category       String    @default("advertisement") // advertisement | payment | conduct | other
+  description    String
+  status         String    @default("open")          // open | in_review | resolved | dismissed
+  adminNotes     String?
+  resolution     String?
+  resolvedAt     DateTime?
+  resolvedById   String?
+  attachmentRefs String?                             // JSON array of MediaAsset ids
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  property       Property? @relation(fields: [propertyId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([propertyId])
+}
+
+// =========================================================================
+// MEDIA / STORAGE (private-by-default; signed URLs served by the API)
+// =========================================================================
+
+model MediaAsset {
+  id            String   @id @default(cuid())
+  ownerUserId   String                              // whoever uploaded it
+  propertyId    String?
+  kind          String                              // image | video | document
+  provider      String                              // sandbox | s3 | r2
+  providerKey   String                              // object key on the provider (opaque)
+  mimeType      String
+  sizeBytes     Int
+  sha256        String                              // client-computed integrity
+  visibility    String   @default("private")        // private | public
+  createdAt     DateTime @default(now())
+
+  @@index([ownerUserId])
+  @@index([propertyId])
 }
 
 model PropertyHost {

@@ -53,6 +53,9 @@ export async function resetDb() {
     prisma.taxRecord.deleteMany(),
     prisma.otpChallenge.deleteMany(),
     prisma.refreshToken.deleteMany(),
+    prisma.complaint.deleteMany(),
+    prisma.advertiserVerification.deleteMany(),
+    prisma.mediaAsset.deleteMany(),
   ]);
 }
 
