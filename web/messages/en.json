@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "SakanHubb — Smart real-estate platform",
+    "description": "A Saudi real-estate platform for daily rentals, sales, and long-term leases. Transparent pricing, instant booking, verified hosts."
+  },
+  "nav": {
+    "features": "Features",
+    "how": "How it works",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "language": "العربية"
+  },
+  "hero": {
+    "eyebrow": "Real estate platform, KSA",
+    "title": "Book, list, and manage properties — in one place.",
+    "subtitle": "SakanHubb connects renters, owners, offices, and marketers with full transparency and per-halalah accuracy.",
+    "primary": "Get the app soon",
+    "secondary": "See what it does"
+  },
+  "features": {
+    "title": "A complete platform, built for Saudi Arabia",
+    "items": [
+      {
+        "icon": "shield",
+        "title": "Full financial transparency",
+        "body": "Every riyal shown: fees, VAT, host share, and total — no surprises."
+      },
+      {
+        "icon": "verify",
+        "title": "REGA + PDPL aligned",
+        "body": "Architecture aligned with real-estate advertising rules and personal-data protection."
+      },
+      {
+        "icon": "wallet",
+        "title": "Double-entry ledger",
+        "body": "Immutable book, reliable settlements, safe refunds — every party's rights preserved."
+      },
+      {
+        "icon": "ar",
+        "title": "Augmented reality",
+        "body": "See a property in place through your phone camera before you book."
+      },
+      {
+        "icon": "auth",
+        "title": "Secure OTP sign-in",
+        "body": "No passwords, no card data on-device. Payments run through licensed providers."
+      },
+      {
+        "icon": "roles",
+        "title": "Multiple roles",
+        "body": "Customer, host, owner, office, marketer — a tailored surface for each."
+      }
+    ]
+  },
+  "how": {
+    "title": "How the platform works",
+    "steps": [
+      { "title": "Search", "body": "Browse listings on the map, with filters, or in AR." },
+      { "title": "Book", "body": "Final price computed on the server — no hidden fees." },
+      { "title": "Pay safely", "body": "Checkout runs through a licensed PSP. We store no card data." },
+      { "title": "Receive settlement", "body": "The host receives their share once verified, with an e-invoice." }
+    ]
+  },
+  "cta": {
+    "title": "Ready to move your listings to a trusted platform?",
+    "body": "iOS app launching soon. Register your interest for early access.",
+    "primary": "Notify me at launch",
+    "note": "Sign-up channels open with the first TestFlight build."
+  },
+  "footer": {
+    "rights": "All rights reserved",
+    "brand": "SakanHubb",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "note": "This site is a marketing preview. It collects no payment data."
+  }
+}
