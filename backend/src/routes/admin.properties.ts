@@ -19,7 +19,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { getPrisma } from '../db.js';
-import { requireRole } from '../auth/rbac.js';
+import { requireAuth, requireRole, isAdminRole } from '../auth/rbac.js';
 import { audit } from '../audit.js';
 import { badRequest, conflict, notFound } from '../errors.js';
 import { jsonSafe } from '../money.js';
@@ -52,6 +52,29 @@ function assertTransition(from: string, to: string): void {
 export default async function adminPropertyRoutes(app: FastifyInstance) {
   const adminOnly = requireRole(['ADMIN', 'FINANCE_ADMIN', 'SUPER_ADMIN']);
 
+  /**
+   * Owner submit: the property's owner (or an admin) may move the listing
+   * from DRAFT / SUSPENDED / EXPIRED → SUBMITTED. Other users get 404 to
+   * avoid probing.
+   */
+  app.post('/v1/properties/:id/submit', async (req, reply) => {
+    const caller = requireAuth(req, reply);
+    const { id } = req.params as { id: string };
+    submitSchema.parse(req.body ?? {});
+    const prisma = getPrisma();
+    const p = await prisma.property.findUnique({ where: { id } });
+    if (!p) throw notFound('property not found');
+    if (p.ownerId !== caller.userId && !isAdminRole(caller.role)) throw notFound('property not found');
+    assertTransition(p.advertisementLifecycle, 'SUBMITTED');
+    const updated = await prisma.property.update({
+      where: { id },
+      data: { advertisementLifecycle: 'SUBMITTED', regaSubmittedAt: new Date() },
+    });
+    await audit({ actorId: caller.userId, action: 'PROPERTY.SUBMITTED', entity: 'Property', entityId: id, after: JSON.stringify({ actor: isAdminRole(caller.role) ? 'admin' : 'owner' }) });
+    return jsonSafe(updated);
+  });
+
+  // Legacy admin path kept for backwards compatibility with existing tests.
   app.post('/v1/admin/properties/:id/submit', async (req, reply) => {
     const caller = adminOnly(req, reply);
     const { id } = req.params as { id: string };

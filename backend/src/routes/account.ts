@@ -20,6 +20,7 @@ import { requireAuth } from '../auth/rbac.js';
 import { revokeAllRefreshTokens } from '../auth/jwt.js';
 import { audit } from '../audit.js';
 import { conflict } from '../errors.js';
+import { jsonSafe } from '../money.js';
 
 const deleteSchema = z.object({
   reason: z.string().max(500).optional(),
@@ -27,6 +28,70 @@ const deleteSchema = z.object({
 });
 
 export default async function accountRoutes(app: FastifyInstance) {
+  /**
+   * PDPL Article 21 subject-access request. Returns the caller's complete
+   * personal + financial footprint as one JSON payload. Only the caller can
+   * fetch their own export — never anyone else's.
+   *
+   * The response is written to the audit log (metadata only — the exported
+   * data itself is not copied into the audit trail).
+   */
+  app.get('/v1/account/export', async (req, reply) => {
+    const caller = requireAuth(req, reply);
+    const prisma = getPrisma();
+    const user = await prisma.user.findUnique({
+      where: { id: caller.userId },
+      include: { roles: true, kyc: true, beneficiary: true },
+    });
+    if (!user) throw conflict('user not found');
+
+    // Load everything scoped to the caller.
+    const [bookings, payments, refunds, settlements, invoices, complaints, mediaAssets, ledgerEntries] = await Promise.all([
+      prisma.booking.findMany({ where: { OR: [{ customerId: caller.userId }, { hostId: caller.userId }] } }),
+      prisma.payment.findMany({ where: { booking: { OR: [{ customerId: caller.userId }, { hostId: caller.userId }] } } }),
+      prisma.refund.findMany({ where: { payment: { booking: { OR: [{ customerId: caller.userId }, { hostId: caller.userId }] } } } }),
+      prisma.settlement.findMany({ where: { beneficiary: { userId: caller.userId } } }),
+      prisma.invoice.findMany({ where: { booking: { OR: [{ customerId: caller.userId }, { hostId: caller.userId }] } } }),
+      prisma.complaint.findMany({ where: { complainantId: caller.userId } }),
+      prisma.mediaAsset.findMany({ where: { ownerUserId: caller.userId } }),
+      prisma.ledgerEntry.findMany({ where: { account: { ownerUserId: caller.userId } }, include: { account: true } }),
+    ]);
+
+    await audit({
+      actorId: caller.userId, action: 'ACCOUNT.EXPORTED',
+      entity: 'User', entityId: caller.userId,
+      after: JSON.stringify({
+        bookings: bookings.length, payments: payments.length,
+        refunds: refunds.length, settlements: settlements.length,
+        invoices: invoices.length, complaints: complaints.length,
+        mediaAssets: mediaAssets.length, ledgerEntries: ledgerEntries.length,
+      }),
+    });
+
+    return jsonSafe({
+      exportedAt: new Date().toISOString(),
+      user: {
+        id: user.id, phone: user.phone, email: user.email,
+        nameAr: user.nameAr, nameEn: user.nameEn, status: user.status,
+        pdplConsentAt: user.pdplConsentAt,
+        createdAt: user.createdAt, updatedAt: user.updatedAt,
+        roles: user.roles.map((r) => ({ role: r.role, scope: r.scope, grantedAt: r.grantedAt })),
+        kyc: user.kyc ? {
+          level: user.kyc.level, status: user.kyc.status,
+          documentType: user.kyc.documentType,     // note: raw document is NOT here — only the type
+          verifiedAt: user.kyc.verifiedAt, expiresAt: user.kyc.expiresAt,
+        } : null,
+        beneficiary: user.beneficiary ? {
+          provider: user.beneficiary.provider,
+          ibanMasked: user.beneficiary.ibanMasked,
+          payoutEnabled: user.beneficiary.payoutEnabled,
+        } : null,
+      },
+      bookings, payments, refunds, settlements, invoices, complaints, mediaAssets,
+      ledger: ledgerEntries,
+    });
+  });
+
   app.delete('/v1/account', async (req, reply) => {
     const caller = requireAuth(req, reply);
     const body = deleteSchema.parse(req.body ?? {});
