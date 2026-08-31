@@ -1,0 +1,20 @@
+// Shared build settings across all three schemes. Do NOT put secrets here.
+
+// Bundle identifier — CHANGE ME before signing.
+PRODUCT_BUNDLE_IDENTIFIER = com.sakanhub.app
+
+// Display name (English fallback; localised via InfoPlist.strings).
+PRODUCT_NAME = SakanHub
+
+// Version.
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+// Deployment target.
+IPHONEOS_DEPLOYMENT_TARGET = 16.0
+
+// Swift.
+SWIFT_VERSION = 5.9
+
+// RTL-first localisation.
+DEVELOPMENT_LANGUAGE = ar

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Real Info.plist — attach to the app target in Xcode. Values marked $(FOO)
+  are substituted from the active .xcconfig at build time.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>                     <string>$(PRODUCT_NAME)</string>
+    <key>CFBundleDisplayName</key>              <string>سكن هوب</string>
+    <key>CFBundleIdentifier</key>               <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleShortVersionString</key>       <string>$(MARKETING_VERSION)</string>
+    <key>CFBundleVersion</key>                  <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>CFBundlePackageType</key>              <string>APPL</string>
+    <key>CFBundleExecutable</key>               <string>$(EXECUTABLE_NAME)</string>
+
+    <!-- Right-to-left first-class -->
+    <key>CFBundleDevelopmentRegion</key>        <string>ar</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>ar</string>
+        <string>en</string>
+    </array>
+
+    <!-- Supported orientations -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>UILaunchScreen</key>
+    <dict>
+        <key>UIColorName</key>                  <string>AccentColor</string>
+    </dict>
+
+    <!-- Camera + Motion (ARKit + virtual tours) -->
+    <key>NSCameraUsageDescription</key>
+    <string>لعرض العقارات بالواقع المعزّز فوق مشهد الكاميرا.</string>
+    <key>NSMotionUsageDescription</key>
+    <string>لتحديد اتجاه الجهاز أثناء الجولة الافتراضية والواقع المعزّز.</string>
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>arm64</string>
+        <string>arkit</string>
+    </array>
+
+    <!-- Location -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>لعرض العقارات القريبة وحساب المسافة على الخريطة والواقع المعزّز.</string>
+    <key>NSLocationTemporaryUsageDescriptionDictionary</key>
+    <dict>
+        <key>ARGeoTracking</key>
+        <string>لدقة أعلى في الواقع المعزّز عند توفّرها في مدينتك.</string>
+    </dict>
+
+    <!-- Runtime config consumed by AppEnvironment (feeds from the active .xcconfig).
+         In the Production scheme the compile-time PRODUCTION flag ADDITIONALLY forces
+         useMocks=false and asserts HTTPS at first read, regardless of USE_MOCKS below. -->
+    <key>API_BASE_URL</key>                     <string>$(API_BASE_URL)</string>
+    <key>USE_MOCKS</key>                        <string>$(USE_MOCKS)</string>
+
+    <!-- Do not track — declared for Apple's App Tracking Transparency dialog.
+         Present only to be explicit; no tracking APIs are called by this app. -->
+    <key>ITSAppUsesNonExemptEncryption</key>    <false/>
+</dict>
+</plist>

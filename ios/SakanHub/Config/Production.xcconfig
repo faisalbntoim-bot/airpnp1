@@ -1,0 +1,13 @@
+#include "Shared.xcconfig"
+
+// Production scheme — HTTPS enforced at runtime (AppEnvironment.apiBaseURL asserts scheme=https).
+// PRODUCTION compile flag hard-forces useMocks=false in code — the value below cannot
+// re-enable them, only serve as an in-plist marker.
+API_BASE_URL = https:/$()/api.sakanhub.example
+USE_MOCKS = NO
+
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) PRODUCTION
+
+// Strip debug symbols in release; enable full optimisation.
+SWIFT_OPTIMIZATION_LEVEL = -O
+GCC_OPTIMIZATION_LEVEL = s
