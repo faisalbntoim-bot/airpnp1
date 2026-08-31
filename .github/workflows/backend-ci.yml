@@ -42,9 +42,13 @@ jobs:
         run: npm ci
 
       - name: Prisma — validate schema
+        env:
+            DATABASE_URL: 'file:./test.db'
         run: npx prisma validate
 
       - name: Prisma — generate client
+        env:
+          DATABASE_URL: 'file:./test.db'
         run: npx prisma generate
 
       - name: TypeScript — noEmit type check
